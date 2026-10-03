@@ -23,7 +23,6 @@ class Session
      * Code de la room si la session est connecté
      * -> Permet la reconnection
      */
-    roomCode?: string;
     /** Timer avant le TO */
     graceTimer?: NodeJS.Timeout;
     /** Connection de la session */

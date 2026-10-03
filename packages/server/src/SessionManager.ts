@@ -14,6 +14,8 @@ class SessionManager
 {
     /** Map permetant selon un token de récupérer la session */
     private byToken = new Map<string, Session>()
+    /** Map permetant selon un id de récupérer la session */
+    private byId = new Map<string, Session>()
 
     /** Méthode de connection : nouvelle connection ou reconnection */
     hello(connection: Connection, pseudo: string, token?: string) : undefined
@@ -32,6 +34,7 @@ class SessionManager
                 pseudo: pseudo
             });
             this.byToken.set(session.token, session);
+            this.byId.set(session.playerId, session);
         }
 
         Logger.debug(`Hello from ${session.pseudo}`);
@@ -54,9 +57,13 @@ class SessionManager
         Logger.debug(`Session closed for ${session.pseudo}`);
 
         session.connection = undefined;
-        session.graceTimer = setTimeout(() => this.byToken.delete(session.token), GRACE_MS);
+        session.graceTimer = setTimeout(
+            () => {
+                this.byToken.delete(session.token);
+                this.byId.delete(session.playerId);
+            }, GRACE_MS);
+        }
     }
-}
 
 /**
  * Exports

@@ -1,6 +1,7 @@
 import { CliToServ, ServToCli, type ClientMsg, type ServerMsg } from '@cardgame/shared/src/protocol';
 import type { WebSocket } from 'ws';
 import Logger from './Logger';
+import type RoomManager from './RoomManager';
 import Session from './Session';
 import type SessionManager from './SessionManager';
 
@@ -13,6 +14,8 @@ interface Params
     ws: WebSocket,
     /** Le manager de session */
     sessionManager: SessionManager,
+    /** Le manager de salons */
+    roomManager: RoomManager,
 }
 
 /**
@@ -26,6 +29,8 @@ class Connection
     ws: WebSocket;
     /** Le manager de session */
     sessionManager: SessionManager;
+    /** Le manager de salons */
+    roomManager: RoomManager;
     /** La session rattaché à la connection */
     session: Session | undefined;
 
@@ -33,6 +38,8 @@ class Connection
     {
         this.session = undefined;
         this.sessionManager = param.sessionManager;
+        this.roomManager = param.roomManager;
+
         this.ws = param.ws;
         this.ws.on('close', () => this.close())
         this.ws.on('message', (data) => this.onMessage(data.toString()))
@@ -68,16 +75,33 @@ class Connection
             this.send({ type: ServToCli.Error, message: 'JSON invalide' })
             return;
         }
+        if(message.type === CliToServ.Hello)
+        {
+            this.sessionManager.hello(this, message.pseudo, message.token);
+            return;
+        }
+        if(!this.session)
+        {
+            this.send({ type: ServToCli.Error, message: 'use Hello before any action' });
+            return;
+        }
 
         switch (message.type) {
             // Le client nous informe d'une nouvelle connection
-            case CliToServ.Hello:
-                this.sessionManager.hello(this, message.pseudo, message.token);
+            case CliToServ.CreateRoom:
+                this.roomManager.create(this.session);
+                break;
+            case CliToServ.JoinRoom:
+                if(!this.roomManager.addPlayer(message.code, this.session))
+                {
+                    this.send({ type: ServToCli.Error, message: 'Impossible de rejoindre le salon' });
+                }
+                break;
+            case CliToServ.KickRoom:
+                this.roomManager.kick(this.session, message.playerId);
                 break;
             // Si aucun type de message Client -> Serveur
             default:
-                if(this.session)
-                    break;
                 this.send({ type: ServToCli.Error, message: 'Type non accepté' });
         }
     }
