@@ -7,7 +7,37 @@
     <title>client</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div id="login">
+        <h1>Login</h1>
+        <div>
+          <p>Pseudo</p>
+          <input type="text" />
+        </div>
+        <div>
+          <p>Code</p>
+          <input type="text" />
+        </div>
+        <div>
+          <button>Rejoindre la partie</button>
+        </div>
+        <br/>
+        <div>
+          <button>Creer une partie</button>
+        </div>
+      </div>
+      <div id="game" hidden>
+        <h1>Game</h1>
+        <p>Aucune partie n'est en cours</p>
+        <canvas></canvas>
+      </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/src/route.ts"></script>
+    <script type="module" src="/src/net.ts"></script>
+
+    <!-- Pages -->
+    <script type="module" src="/src/pages/login.ts"></script>
+
   </body>
 </html>
